@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+
+// see: https://code.visualstudio.com/api/extension-guides/tree-view
 export class GilbertTasksProvider implements vscode.TreeDataProvider<Task> {
   private _onDidChangeTreeData: vscode.EventEmitter<Task | undefined> = new vscode.EventEmitter<Task | undefined>();
   readonly onDidChangeTreeData: vscode.Event<Task | undefined> = this._onDidChangeTreeData.event;
@@ -10,6 +12,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<Task> {
   }
 
   refresh(): void {
+    vscode.window.showInformationMessage('Refresh test');
     this._onDidChangeTreeData.fire();
   }
 

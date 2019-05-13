@@ -18,19 +18,36 @@
       {
         "command": "extension.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "gilbertTasks.refreshEntry",
+        "title": "Refresh Gilbert tasks",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "gilbertTasks.refreshEntry",
+          "when": "view == gilbertTasks",
+          "group": "navigation"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "gilbert-tasks",
+          "id": "gilbertTasks",
           "title": "Gilbert tasks",
           "icon": "media/cogs.svg"
         }
       ]
     },
     "views": {
-      "gilbert-tasks": [
+      "explorer": [
         {
           "id": "gilbertTasks",
           "name": "Gilbert Tasks"
