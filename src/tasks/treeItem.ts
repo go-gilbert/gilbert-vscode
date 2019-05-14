@@ -16,6 +16,10 @@ export class ManifestData {
   get baseName(): string {
     return path.basename(path.dirname(this.fullPath));
   }
+
+  get url() {
+    return vscode.Uri.parse(`file://${this.fullPath}`);
+  }
 }
 
 export class TreeItem extends vscode.TreeItem {
@@ -26,6 +30,10 @@ export class TreeItem extends vscode.TreeItem {
     public readonly command?: vscode.Command
   ) {
     super(label, type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+  }
+
+  get contextValue() {
+    return this.type;
   }
 
   get isGroup() {
@@ -53,10 +61,6 @@ export class TreeItem extends vscode.TreeItem {
       light: path.join(__filename, '..', '..', '..', 'resources', 'light', `${imgName}.svg`),
       dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', `${imgName}.svg`)
     };
-  }
-
-  get contextValue() {
-    return this.isGroup ? 'folder' : 'task';
   }
 
   get tasks(): Promise<TreeItem[]> {

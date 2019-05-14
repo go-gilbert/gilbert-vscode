@@ -20,20 +20,35 @@
         "title": "Hello World"
       },
       {
-        "command": "gilbertTasks.refreshEntry",
-        "title": "Refresh Gilbert tasks",
+        "command": "gilbertTasks.refresh",
+        "title": "Refresh tasks list",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "gilbertTasks.editManifest",
+        "title": "Edit",
+        "icon": {
+          "light": "resources/light/edit.svg",
+          "dark": "resources/dark/edit.svg"
         }
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "gilbertTasks.refreshEntry",
+          "command": "gilbertTasks.refresh",
           "when": "view == gilbertTasks",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gilbertTasks.editManifest",
+          "when": "view == gilbertTasks && viewItem == group",
+          "group": "inline"
         }
       ]
     },

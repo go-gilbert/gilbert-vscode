@@ -20,9 +20,14 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   constructor(private dirs: vscode.WorkspaceFolder[]) {
   }
 
-  @Command('refreshEntry')
+  @Command('refresh')
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  @Command('editManifest')
+  edit(element: TreeItem) {
+    vscode.commands.executeCommand('vscode.open', element.manifest.url);
   }
 
   getTreeItem(element: TreeItem): vscode.TreeItem {
