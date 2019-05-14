@@ -22,7 +22,6 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
 
   @Command('refreshEntry')
   refresh(): void {
-    vscode.window.showInformationMessage('Refresh test');
     this._onDidChangeTreeData.fire();
   }
 
