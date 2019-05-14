@@ -43,7 +43,13 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
     if (!element) {
       const items = await this.manifests;
       if (items.length > 0) {
+        // show panel if any results are present
         this.showPanel = true;
+      }
+
+      if (items.length === 1) {
+        // Expand item if it's orphan
+        items[0].collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
       }
 
       return items;
@@ -129,14 +135,8 @@ export class TreeItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly command?: vscode.Command
   ) {
-    super(label, 0);
+    super(label, TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
   }
-
-  get collapsibleState() {
-    return this.type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
-  }
-
-  set collapsibleState(_) {}
 
   get isGroup() {
     return this.type === TreeItemType.Group;
