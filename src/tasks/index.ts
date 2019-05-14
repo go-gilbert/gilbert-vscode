@@ -4,6 +4,7 @@ import * as util from 'util';
 import { inspectTasks } from './utils';
 import { TreeItem, TreeItemType, ManifestData } from './treeItem';
 import { TreeDataProvider, Command, ContextProperty } from '../vskit';
+import { Runner, Task } from './provider';
 
 const glob = util.promisify(require('glob'));
 const SUPPORTED_SCHEME = 'file';
@@ -12,6 +13,7 @@ const SUPPORTED_SCHEME = 'file';
 
 @TreeDataProvider('gilbertTasks')
 export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
+  private runner = new Runner();
   private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined> = new vscode.EventEmitter<TreeItem | undefined>();
   readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
 
@@ -33,6 +35,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   @Command('runTask')
   runTask(name: string, ctx: ManifestData) {
     console.log(`STUB: runTask(${name}, ${ctx.directory})`);
+    this.runner.run(new Task(name, ctx.directory));
   }
 
   getTreeItem(element: TreeItem): vscode.TreeItem {
