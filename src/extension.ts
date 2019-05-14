@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 
 import { GilbertTasksProvider } from './tasks';
+import { register } from './vskit';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -11,14 +12,17 @@ export function activate(context: vscode.ExtensionContext) {
 	// vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0]. : 
 	if (!vscode.workspace.workspaceFolders) {
 		console.log('gilbert: no workspace folders found');
-		vscode.commands.executeCommand('setContext', 'hasGilbertManifest', false);
+		// vscode.commands.executeCommand('setContext', 'hasGilbertManifest', false);
 		return;
 	}
 
 	const tasksListProvider = new GilbertTasksProvider(vscode.workspace.workspaceFolders);
-	vscode.window.registerTreeDataProvider('gilbertTasks', tasksListProvider);
-	vscode.commands.registerCommand('gilbertTasks.refreshEntry', () => tasksListProvider.refresh());
-	vscode.commands.executeCommand('setContext', 'hasGilbertManifest', true);
+	register(tasksListProvider);
+	tasksListProvider.showPanel = true;
+	
+	// vscode.window.registerTreeDataProvider('gilbertTasks', tasksListProvider);
+	//vscode.commands.registerCommand('gilbertTasks.refreshEntry', () => tasksListProvider.refresh());
+	//vscode.commands.executeCommand('setContext', 'hasGilbertManifest', true);
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated

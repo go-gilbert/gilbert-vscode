@@ -4,19 +4,25 @@ import * as path from 'path';
 import * as util from 'util';
 
 import { inspectTasks } from './utils';
+import { TreeDataProvider, Command, ContextProperty } from './vskit';
 
 const glob = util.promisify(require('glob'));
 
 const SUPPORTED_SCHEME = 'file';
 
 // see: https://code.visualstudio.com/api/extension-guides/tree-view
+
+@TreeDataProvider('gilbertTasks')
 export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined> = new vscode.EventEmitter<TreeItem | undefined>();
   readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
 
+  @ContextProperty('hasGilbertManifest') showPanel = false;
+
   constructor(private dirs: vscode.WorkspaceFolder[]) {
   }
 
+  @Command('refreshEntry')
   refresh(): void {
     vscode.window.showInformationMessage('Refresh test');
     this._onDidChangeTreeData.fire();
@@ -29,12 +35,18 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   async getChildren(element?: TreeItem): Promise<TreeItem[]> {
     vscode.window.showInformationMessage('Loaded');
     if (!this.dirs) {
-      vscode.window.showInformationMessage('No dependency in empty workspace');
+      vscode.window.showInformationMessage('No manifest in empty workspace');
+      this.showPanel = false;
       return [];
     }
 
     if (!element) {
-      return this.manifests;  
+      const items = await this.manifests;
+      if (items.length > 0) {
+        this.showPanel = true;
+      }
+
+      return items;
     }
 
     try {
