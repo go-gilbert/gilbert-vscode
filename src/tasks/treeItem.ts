@@ -50,8 +50,8 @@ export class TreeItem extends vscode.TreeItem {
     const imgName = this.isGroup ? 'group' : 'cogs';
 
     return {
-      light: path.join(__filename, '..', '..', 'resources', 'light', `${imgName}.svg`),
-      dark: path.join(__filename, '..', '..', 'resources', 'dark', `${imgName}.svg`)
+      light: path.join(__filename, '..', '..', '..', 'resources', 'light', `${imgName}.svg`),
+      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', `${imgName}.svg`)
     };
   }
 
