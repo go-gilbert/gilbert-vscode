@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as util from 'util';
 
 import { inspectTasks } from './utils';
-import { TreeDataProvider, Command, ContextProperty } from './vskit';
+import { TreeItem, TreeItemType, ManifestData } from './treeItem';
+import { TreeDataProvider, Command, ContextProperty } from '../vskit';
 
 const glob = util.promisify(require('glob'));
-
 const SUPPORTED_SCHEME = 'file';
 
 // see: https://code.visualstudio.com/api/extension-guides/tree-view
@@ -100,113 +98,7 @@ async function findManifests(dir: string): Promise<TreeItem[]> {
   const files = await glob('**/gilbert.yaml', {cwd: dir});
   return files.map((f: string) => {
     const data = new ManifestData(dir, f);
-    // const data: ManifestData = {
-    //   location: f,
-    //   root: dir,
-    //   fullPath: path.join(dir, f),
-    // };
-
     console.debug(`gilbert: found '${data.fullPath}'`);
     return new TreeItem(TreeItemType.Group, data, data.baseName);
   });
 }
-
-enum TreeItemType {
-  Task = "task",
-  Group = "group"
-}
-
-class ManifestData {
-  fullPath: string;
-
-  constructor(public root: string, public location: string) {
-    this.fullPath = path.join(root, location);
-  }
-  
-  get baseName(): string {
-    return path.basename(path.dirname(this.fullPath));
-  }
-}
-
-export class TreeItem extends vscode.TreeItem {
-  constructor(
-    public readonly type: TreeItemType,
-    public readonly manifest: ManifestData,
-    public readonly label: string,
-    public readonly command?: vscode.Command
-  ) {
-    super(label, type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
-  }
-
-  get isGroup() {
-    return this.type === TreeItemType.Group;
-  }
-
-  get description(): string | boolean {
-    return this.isGroup ? this.manifest.location : false;
-  }
-
-  get dir() {
-    return path.dirname(this.manifest.fullPath);
-  }
-
-  get tooltip() {
-    if (this.isGroup) {
-      return this.manifest.fullPath;
-    }
-  }
-
-  get iconPath() {
-    const imgName = this.isGroup ? 'group' : 'cogs';
-
-    return {
-      light: path.join(__filename, '..', '..', 'resources', 'light', `${imgName}.svg`),
-      dark: path.join(__filename, '..', '..', 'resources', 'dark', `${imgName}.svg`)
-    };
-  }
-
-  get contextValue() {
-    return this.isGroup ? 'folder' : 'task';
-  }
-
-  get tasks(): Promise<TreeItem[]> {
-    if (this.isGroup) {
-      return Promise.resolve([]);
-    }
-
-    return (async () => {
-      return [];
-    })();
-  }
-
-  createChild(taskName: string): TreeItem {
-    return new TreeItem(TreeItemType.Task, this.manifest, taskName);
-  }
-}
-
-// export class Task extends TreeItem {
-
-//   constructor(
-//     public readonly label: string,
-//     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-//     public readonly command?: vscode.Command
-//   ) {
-//     super(TreeItemType, Group, label, collapsibleState);
-//   }
-
-//   get tooltip(): string {
-//     return `${this.label}`;
-//   }
-
-//   get description(): string {
-//     return this.label;
-//   }
-
-//   iconPath = {
-//     light: path.join(__filename, '..', '..', 'resources', 'light', 'cogs.svg'),
-//     dark: path.join(__filename, '..', '..', 'resources', 'dark', 'cogs.svg')
-//   };
-
-//   contextValue = 'task';
-
-// }
