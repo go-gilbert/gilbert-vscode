@@ -38,7 +38,9 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     try {
+      vscode.window.setStatusBarMessage(`Loading tasks list from '${element.manifest.fullPath}'...`);
       const tasks = await inspectTasks(element.dir);
+      vscode.window.setStatusBarMessage('Done');
       return tasks.map(t => element.createChild(t));
     } catch (err) {
       vscode.window.showErrorMessage(`Failed to get tasks list: ${err.message}`);
@@ -49,6 +51,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   get manifests(): Promise<TreeItem[]> {
     return (async() => {
       console.debug(`gilbert: looking for manifests...`);
+      vscode.window.setStatusBarMessage('Searching for Gilbert files...');
       const out: TreeItem[] = [];
 
       const dirs = this.dirs
@@ -68,6 +71,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
         }
       }
 
+      vscode.window.setStatusBarMessage('');
       return out;
     })();
   }
@@ -77,9 +81,15 @@ async function findManifests(dir: string): Promise<TreeItem[]> {
   console.debug(`gilbert: looking for 'gilbert.yaml' in '${dir}'...`);
   const files = await glob('**/gilbert.yaml', {cwd: dir});
   return files.map((f: string) => {
-    f = path.join(dir, f);
-    console.debug(`gilbert: found '${f}'`);
-    return new TreeItem(TreeItemType.Group, f, path.basename(path.dirname(f)));
+    const data = new ManifestData(dir, f);
+    // const data: ManifestData = {
+    //   location: f,
+    //   root: dir,
+    //   fullPath: path.join(dir, f),
+    // };
+
+    console.debug(`gilbert: found '${data.fullPath}'`);
+    return new TreeItem(TreeItemType.Group, data, data.baseName);
   });
 }
 
@@ -88,10 +98,22 @@ enum TreeItemType {
   Group = "group"
 }
 
+class ManifestData {
+  fullPath: string;
+
+  constructor(public root: string, public location: string) {
+    this.fullPath = path.join(root, location);
+  }
+  
+  get baseName(): string {
+    return path.basename(path.dirname(this.fullPath));
+  }
+}
+
 export class TreeItem extends vscode.TreeItem {
   constructor(
     public readonly type: TreeItemType,
-    public readonly manifest: string,
+    public readonly manifest: ManifestData,
     public readonly label: string,
     public readonly command?: vscode.Command
   ) {
@@ -108,12 +130,18 @@ export class TreeItem extends vscode.TreeItem {
     return this.type === TreeItemType.Group;
   }
 
-  get description(): string {
-    return this.isGroup ? this.manifest : 'task';
+  get description(): string | boolean {
+    return this.isGroup ? this.manifest.location : false;
   }
 
   get dir() {
-    return path.dirname(this.manifest);
+    return path.dirname(this.manifest.fullPath);
+  }
+
+  get tooltip() {
+    if (this.isGroup) {
+      return this.manifest.fullPath;
+    }
   }
 
   get iconPath() {
