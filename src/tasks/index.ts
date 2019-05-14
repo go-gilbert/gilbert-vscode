@@ -30,6 +30,11 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
     vscode.commands.executeCommand('vscode.open', element.manifest.url);
   }
 
+  @Command('runTask')
+  runTask(name: string, ctx: ManifestData) {
+    console.log(`STUB: runTask(${name}, ${ctx.directory})`);
+  }
+
   getTreeItem(element: TreeItem): vscode.TreeItem {
     return element;
   }

@@ -16,8 +16,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+        "command": "gilbertTasks.runTask",
+        "title": "Run task"
       },
       {
         "command": "gilbertTasks.refresh",

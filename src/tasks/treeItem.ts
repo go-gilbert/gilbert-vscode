@@ -13,6 +13,10 @@ export class ManifestData {
     this.fullPath = path.join(root, location);
   }
 
+  get directory() {
+    return path.dirname(this.fullPath);
+  }
+
   get baseName(): string {
     return path.basename(path.dirname(this.fullPath));
   }
@@ -26,8 +30,7 @@ export class TreeItem extends vscode.TreeItem {
   constructor(
     public readonly type: TreeItemType,
     public readonly manifest: ManifestData,
-    public readonly label: string,
-    public readonly command?: vscode.Command
+    public readonly label: string
   ) {
     super(label, type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
   }
@@ -51,6 +54,21 @@ export class TreeItem extends vscode.TreeItem {
   get tooltip() {
     if (this.isGroup) {
       return this.manifest.fullPath;
+    }
+  }
+
+  get command() {
+    if (this.isGroup) {
+      return;
+    }
+
+    return {
+      title: this.label,
+      command: 'gilbertTasks.runTask',
+      arguments: [
+        this.label,
+        this.manifest
+      ],
     }
   }
 
