@@ -1,14 +1,20 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as util from 'util';
 
+import { inspectTasks } from './utils';
+
+const glob = util.promisify(require('glob'));
+
+const SUPPORTED_SCHEME = 'file';
 
 // see: https://code.visualstudio.com/api/extension-guides/tree-view
-export class GilbertTasksProvider implements vscode.TreeDataProvider<Task> {
-  private _onDidChangeTreeData: vscode.EventEmitter<Task | undefined> = new vscode.EventEmitter<Task | undefined>();
-  readonly onDidChangeTreeData: vscode.Event<Task | undefined> = this._onDidChangeTreeData.event;
+export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
+  private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined> = new vscode.EventEmitter<TreeItem | undefined>();
+  readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
 
-  constructor(private workspaceRoot: string) {
+  constructor(private dirs: vscode.WorkspaceFolder[]) {
   }
 
   refresh(): void {
@@ -16,58 +22,151 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<Task> {
     this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem(element: Task): vscode.TreeItem {
+  getTreeItem(element: TreeItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: Task): Thenable<Task[]> {
+  async getChildren(element?: TreeItem): Promise<TreeItem[]> {
     vscode.window.showInformationMessage('Loaded');
-    if (!this.workspaceRoot) {
+    if (!this.dirs) {
       vscode.window.showInformationMessage('No dependency in empty workspace');
-      // return Promise.resolve([]);
+      return [];
     }
 
-    const values = [new Task('build', 0), new Task('cover', 0)];
-    return Promise.resolve(values);
-    // if (element) {
-    // 	return Promise.resolve(this.getDepsInPackageJson(path.join(this.workspaceRoot, 'node_modules', element.label, 'package.json')));
-    // } else {
-    // 	const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
-    // 	if (this.pathExists(packageJsonPath)) {
-    // 		return Promise.resolve(this.getDepsInPackageJson(packageJsonPath));
-    // 	} else {
-    // 		vscode.window.showInformationMessage('Workspace has no package.json');
-    // 		return Promise.resolve([]);
-    // 	}
-    // }
+    if (!element) {
+      return this.manifests;  
+    }
 
+    try {
+      const tasks = await inspectTasks(element.dir);
+      return tasks.map(t => element.createChild(t));
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to get tasks list: ${err.message}`);
+      return [];
+    }
+  }
+
+  get manifests(): Promise<TreeItem[]> {
+    return (async() => {
+      console.debug(`gilbert: looking for manifests...`);
+      const out: TreeItem[] = [];
+
+      const dirs = this.dirs
+        .filter(d => d.uri.scheme === SUPPORTED_SCHEME)
+        .map(d => d.uri.fsPath);
+
+      for (let dir of dirs) {
+        try {
+          const foundItems = await findManifests(dir);
+          out.push(...foundItems);
+          if (foundItems.length > 0) {
+            console.debug(`gilbert: item: `, foundItems);
+          }
+        } catch (ex) {
+          console.error(`gilbert: glob error, ${ex.message} (in '${dir}')`);
+          vscode.window.showErrorMessage(`Failed to find manifest in '${dir}'`);
+        }
+      }
+
+      return out;
+    })();
   }
 }
 
+async function findManifests(dir: string): Promise<TreeItem[]> {
+  console.debug(`gilbert: looking for 'gilbert.yaml' in '${dir}'...`);
+  const files = await glob('**/gilbert.yaml', {cwd: dir});
+  return files.map((f: string) => {
+    f = path.join(dir, f);
+    console.debug(`gilbert: found '${f}'`);
+    return new TreeItem(TreeItemType.Group, f, path.basename(path.dirname(f)));
+  });
+}
 
-export class Task extends vscode.TreeItem {
+enum TreeItemType {
+  Task = "task",
+  Group = "group"
+}
 
+export class TreeItem extends vscode.TreeItem {
   constructor(
+    public readonly type: TreeItemType,
+    public readonly manifest: string,
     public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly command?: vscode.Command
   ) {
-    super(label, collapsibleState);
+    super(label, 0);
   }
 
-  get tooltip(): string {
-    return `${this.label}`;
+  get collapsibleState() {
+    return this.type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
+  }
+
+  set collapsibleState(_) {}
+
+  get isGroup() {
+    return this.type === TreeItemType.Group;
   }
 
   get description(): string {
-    return this.label;
+    return this.isGroup ? this.manifest : 'task';
   }
 
-  iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'cogs.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'cogs.svg')
-  };
+  get dir() {
+    return path.dirname(this.manifest);
+  }
 
-  contextValue = 'task';
+  get iconPath() {
+    const imgName = this.isGroup ? 'group' : 'cogs';
 
+    return {
+      light: path.join(__filename, '..', '..', 'resources', 'light', `${imgName}.svg`),
+      dark: path.join(__filename, '..', '..', 'resources', 'dark', `${imgName}.svg`)
+    };
+  }
+
+  get contextValue() {
+    return this.isGroup ? 'folder' : 'task';
+  }
+
+  get tasks(): Promise<TreeItem[]> {
+    if (this.isGroup) {
+      return Promise.resolve([]);
+    }
+
+    return (async () => {
+      return [];
+    })();
+  }
+
+  createChild(taskName: string): TreeItem {
+    return new TreeItem(TreeItemType.Task, this.manifest, taskName);
+  }
 }
+
+// export class Task extends TreeItem {
+
+//   constructor(
+//     public readonly label: string,
+//     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+//     public readonly command?: vscode.Command
+//   ) {
+//     super(TreeItemType, Group, label, collapsibleState);
+//   }
+
+//   get tooltip(): string {
+//     return `${this.label}`;
+//   }
+
+//   get description(): string {
+//     return this.label;
+//   }
+
+//   iconPath = {
+//     light: path.join(__filename, '..', '..', 'resources', 'light', 'cogs.svg'),
+//     dark: path.join(__filename, '..', '..', 'resources', 'dark', 'cogs.svg')
+//   };
+
+//   contextValue = 'task';
+
+// }
