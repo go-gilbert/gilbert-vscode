@@ -31,7 +31,6 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   }
 
   async getChildren(element?: TreeItem): Promise<TreeItem[]> {
-    vscode.window.showInformationMessage('Loaded');
     if (!this.dirs) {
       vscode.window.showInformationMessage('No manifest in empty workspace');
       this.showPanel = false;
