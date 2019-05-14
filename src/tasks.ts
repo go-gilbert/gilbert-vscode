@@ -135,7 +135,7 @@ export class TreeItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly command?: vscode.Command
   ) {
-    super(label, TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+    super(label, type === TreeItemType.Group ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
   }
 
   get isGroup() {
