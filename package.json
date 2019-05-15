@@ -3,6 +3,7 @@
   "displayName": "Gilbert",
   "description": "Gilbert support for Visual Studio Code",
   "version": "0.0.1",
+  "publisher": "x1unix",
   "homepage": "https://github.com/go-gilbert/gilbert-vscode/blob/master/README.md",
   "repository": {
     "type": "git",
