@@ -9,7 +9,7 @@ export enum TreeItemType {
 export class ManifestData {
   fullPath: string;
 
-  constructor(public root: string, public location: string) {
+  constructor(public root: string, public location: string, public workspace: vscode.WorkspaceFolder) {
     this.fullPath = path.join(root, location);
   }
 
@@ -69,7 +69,7 @@ export class TreeItem extends vscode.TreeItem {
         this.label,
         this.manifest
       ],
-    }
+    };
   }
 
   get iconPath() {

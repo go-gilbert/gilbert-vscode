@@ -4,7 +4,7 @@ import * as util from 'util';
 import { inspectTasks } from './utils';
 import { TreeItem, TreeItemType, ManifestData } from './treeItem';
 import { TreeDataProvider, Command, ContextProperty } from '../vskit';
-import { Runner, Task } from './provider';
+import { Runner } from './provider';
 
 const glob = util.promisify(require('glob'));
 const SUPPORTED_SCHEME = 'file';
@@ -35,7 +35,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   @Command('runTask')
   runTask(name: string, ctx: ManifestData) {
     console.log(`STUB: runTask(${name}, ${ctx.directory})`);
-    this.runner.run(new Task(name, ctx.directory));
+    this.runner.run(name, ctx);
   }
 
   getTreeItem(element: TreeItem): vscode.TreeItem {
@@ -82,8 +82,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
       const out: TreeItem[] = [];
 
       const dirs = this.dirs
-        .filter(d => d.uri.scheme === SUPPORTED_SCHEME)
-        .map(d => d.uri.fsPath);
+        .filter(d => d.uri.scheme === SUPPORTED_SCHEME);
 
       for (let dir of dirs) {
         try {
@@ -104,11 +103,12 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   }
 }
 
-async function findManifests(dir: string): Promise<TreeItem[]> {
+async function findManifests(ws: vscode.WorkspaceFolder): Promise<TreeItem[]> {
+  const dir = ws.uri.fsPath;
   console.debug(`gilbert: looking for 'gilbert.yaml' in '${dir}'...`);
   const files = await glob('**/gilbert.yaml', {cwd: dir});
   return files.map((f: string) => {
-    const data = new ManifestData(dir, f);
+    const data = new ManifestData(dir, f, ws);
     console.debug(`gilbert: found '${data.fullPath}'`);
     return new TreeItem(TreeItemType.Group, data, data.baseName);
   });
