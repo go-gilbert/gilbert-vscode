@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const tasksListProvider = new GilbertTasksProvider(vscode.workspace.workspaceFolders);
-  register(context, tasksListProvider);
+  // register(context, tasksListProvider);
   tasksListProvider.showPanel = true;
 }
 

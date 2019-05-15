@@ -20,6 +20,10 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
   @ContextProperty('hasGilbertManifest') showPanel = false;
 
   constructor(private dirs: vscode.WorkspaceFolder[]) {
+    vscode.window.registerTreeDataProvider('gilbertTasks', this);
+    vscode.commands.registerCommand('gilbertTasks.refresh', this.refresh.bind(this));
+    vscode.commands.registerCommand('gilbertTasks.editManifest', () => this.edit.bind(this));
+    vscode.commands.registerCommand('gilbertTasks.runTask', () => this.runTask.bind(this));
   }
 
   @Command('refresh')
@@ -32,7 +36,7 @@ export class GilbertTasksProvider implements vscode.TreeDataProvider<TreeItem> {
     vscode.commands.executeCommand('vscode.open', element.manifest.url);
   }
 
-  @Command('runTask')
+  // @Command('runTask')
   runTask(name: string, ctx: ManifestData) {
     console.log(`STUB: runTask(${name}, ${ctx.directory})`);
     this.runner.run(name, ctx);
