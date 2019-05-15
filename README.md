@@ -1,6 +1,6 @@
-# gilbert README
+# Gilbert support
 
-This extension provides integration with [Gilbert](http://go-gilbert.github.io/gilbert) task runner.
+This preview release of the extension provides integration with [Gilbert](http://go-gilbert.github.io/gilbert) task runner.
 
 ## Features
 
