@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "x1unix",
   "homepage": "https://github.com/go-gilbert/gilbert-vscode/blob/master/README.md",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/go-gilbert/gilbert-vscode.git"
