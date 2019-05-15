@@ -2,13 +2,13 @@
   "name": "gilbert",
   "displayName": "Gilbert",
   "description": "Gilbert support for Visual Studio Code",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "x1unix",
   "homepage": "https://github.com/go-gilbert/gilbert-vscode/blob/master/README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/go-gilbert/gilbert-vscode.git"
-},
+  },
   "engines": {
     "vscode": "^1.33.0"
   },
